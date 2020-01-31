@@ -1,7 +1,8 @@
 //Assignment 1 for CS3310
 //Written by Adam Smith
 //everything works except for the merge function. I was very close, but couldn't iron it out
-//before I had to submit it
+//before I had to submit it. considering it was introduced on the 28th, I think I made
+//it pretty far on that one
 
 
 #include <iostream>
