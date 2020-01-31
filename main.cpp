@@ -1,3 +1,9 @@
+//Assignment 1 for CS3310
+//Written by Adam Smith
+//everything works except for the merge function. I was very close, but couldn't iron it out
+//before I had to submit it
+
+
 #include <iostream>
 #include <string.h>
 #include <stdio.h>
@@ -10,6 +16,7 @@ void newNode(item **head, char *buf){
     item *newitem = (item*)malloc(sizeof(item));
     newitem->name = (char*)malloc(30*sizeof(char));
     strcpy (newitem->name, strtok(buf, ","));
+    toupper(*(newitem->name));
     newitem->minStr = atoi(strtok(NULL, ","));
     newitem->maxStr = atoi(strtok(NULL, ","));
     newitem->rarity = (char*)malloc(15*sizeof(char));
@@ -54,14 +61,14 @@ void fillBags(bags **bag, item **head){
 
 }
 
-void randSearch(int b, int n, bags *(bag[30]), item **head){
+void randSearch(int b, int n, bags *(bag[]), item **head){
     while((*head)->prev!=NULL){     //points head back to beginning
         (*head) = (*head)->prev;
         }
     for (int i=0; i<(rand()%n); i++){
         (*head) = (*head)->next;
     }
-    printf("looking for %s...\n", (*head)->name);
+    printf("\nlooking for %s...\n", (*head)->name);
 
     for(int i=0; i<b; i++){
         int j = 0;
@@ -69,15 +76,15 @@ void randSearch(int b, int n, bags *(bag[30]), item **head){
         (*bag)->items = (*bag)->items->prev;
         }
         do{
-            if((*bag)->items->prev){
+            if((*bag)->items->prev!=NULL){
             ((*bag)->items = (*bag)->items->next);
             }
             if (!strcmp((*bag)->items->name, (*head)->name) &&
             (*bag)->items->str == (*head)->str){
-                printf("found in bag %i in slot %i\n\n", i+1, j+1);
+                printf("found in bag %i in slot %i. Strength: %i\n\n", i+1, j+1, (*bag)->items->str);
                 i=b;
             }
-            if(!(*bag)->items->prev){
+            if((*bag)->items->prev){
             ((*bag)->items = (*bag)->items->next);
             }
             j++;
@@ -131,6 +138,94 @@ void insertionSort(item** head){    //ask about lower case letters
     (*head) = search;
 }
 
+void merge(bags *bag, int l, int mid, int r){
+    item *bLeft =  (item*)malloc(sizeof(item));
+    item *bRight =  (item*)malloc(sizeof(item));
+    item *temp;
+    bool test = false;
+    int n1 = mid-l+1;
+    int n2 = r-mid;
+if (!test){
+    
+    while(bag->items->prev!=NULL){
+        bag->items= bag->items->prev;
+    }
+    
+    for(int i=0; i<l; i++){
+        bag->items= bag->items->next;
+    }
+    bLeft = bag->items;
+
+
+    for(int i=0; i<n1; i++){
+        bag->items= bag->items->next;
+    }
+    bRight = bag->items;
+
+    while(n1&&n2){ //fix, not work
+
+    int comp = strcmp(bLeft->name, bRight->name); //finds lowest name in head
+            if (comp>=0){ 
+                if(comp || !(bLeft->str > bRight->str)){  //sorts weapon subgroup by highest damage
+                    if(bRight->next!=NULL){                     //  |   places bRight before bLeft
+                        temp = bRight->next;                    //  |
+                        bRight->next->prev = bRight->prev;      //  V
+                    }                                           //  
+                    bRight->prev->next = bRight->next;          //
+
+
+                    bRight->next = bLeft;
+                        bRight->prev = bLeft->prev;
+                    if(l){
+                        bLeft->prev->next = bRight;
+                    }
+                    bLeft->prev = bRight;                       //  ^
+                    bRight = temp;                              //  |
+                    n1--;                                       //  |
+                } else {
+                    bLeft = bLeft->next;
+                    n2--;
+                }
+            } else {
+                bLeft = bLeft->next;
+                n2--;
+            }
+    }
+
+while(bag->items->prev!=NULL){
+        bag->items= bag->items->prev;
+    }
+}
+
+}
+
+void mergeSort(bags *bag, int l, int r){
+    if (r>l){
+    int mid = (l+r)/2;
+        mergeSort(bag, l, mid);
+        mergeSort(bag, mid+1, r);
+        merge(bag, l, mid, r);
+    }
+}
+
+void mergeBags(bags *(bag[]), int n, int b){
+    item *temp =  (item*)malloc(sizeof(item));
+    for (int i=1;i<b; i++){
+        while((*bag)->items->next!=NULL){
+            (*bag)->items= (*bag)->items->next;
+        }
+        temp = (*bag)->items;
+        *bag++;
+
+        temp->next = (*bag)->items;
+        (*bag)->items->prev=temp;
+    }
+    while((*bag)->items->prev!=NULL){
+            (*bag)->items= (*bag)->items->prev;
+        }
+    mergeSort(*bag, 0, n);
+}
+
 
 main(){
 
@@ -155,11 +250,7 @@ main(){
         bag[i]->bagn = i+1; 
     }
 
-    //for (int i=0; i <25; i++){
-    //    printf("%s\n", bag[2]->items[i]->name);
-    //}
-    randSearch(b, n, bag, &head);
-    randSearch(b, n, bag, &head);
+
 
     while(head->prev!=NULL){
         head = head->prev;
@@ -167,10 +258,38 @@ main(){
 
     insertionSort(&head);
 
-    for (int i=0; i <n; i++){
-        printf("%s  %i\n", head->name, head->str);
-        head = head->next;
+        printf("There are % bags.\nBags before sorting:\n", b);
+
+    for (int i=0; i <b; i++){
+        printf("    Bag %i:\n", i);
+        for (int j=0; j<25; j++){
+            printf("%s, %i\n", bag[i]->items->name, bag[i]->items->str);
+            if(bag[i]->items->next!=NULL){
+                bag[i]->items = bag[i]->items->next;
+            }
+        }
     }
+    randSearch(b, n, bag, &head);
+
+
+    for(int i=0; i<b; i++){
+        insertionSort(&(bag[i]->items));
+    }
+        printf("Bags after sorting individually:\n");
+
+    for (int i=0; i <b; i++){
+        printf("    Bag %i:\n", i);
+        for (int j=0; j<25; j++){
+            printf("%s, %i\n", bag[i]->items->name, bag[i]->items->str);
+            if(bag[i]->items->next!=NULL){
+                bag[i]->items = bag[i]->items->next;
+            }
+        }
+    }
+
+    randSearch(b, n, bag, &head);
+
+    //mergeBags(bag, n, b);
 
     free(buf);
  return 0;
